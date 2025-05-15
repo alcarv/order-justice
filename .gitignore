@@ -1,0 +1,4 @@
+.env
+.bolt
+node_modules
+dist
