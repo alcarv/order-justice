@@ -12,6 +12,9 @@ async function bootstrap() {
   // Enable validation pipes
   app.useGlobalPipes(new ValidationPipe());
 
+  //Enable prefix for routes
+  app.setGlobalPrefix('api');
+
   // Swagger setup
   const config = new DocumentBuilder()
     .setTitle('Legal Management System API')

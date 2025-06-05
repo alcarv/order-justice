@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import api from '../lib/api';
-import { ClientFact } from '../types';
+import { ClientFact, ApiClientFact } from '../types';
 
 interface FactsState {
   facts: ClientFact[];
@@ -10,6 +10,19 @@ interface FactsState {
   addFact: (fact: Omit<ClientFact, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateFact: (factId: string, content: string) => Promise<void>;
   linkFactToProcess: (factId: string, processId: string) => Promise<void>;
+  deleteFact: (factId: string) => Promise<void>;
+}
+
+function normalizeFact(item: ApiClientFact): ClientFact {
+  return {
+    id: item.id,
+    clientId: item.client.id,
+    reportedBy: item.reportedBy.id,
+    content: item.content,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    processId: item.process?.id,
+  };
 }
 
 export const useFactsStore = create<FactsState>((set, get) => ({
@@ -21,7 +34,7 @@ export const useFactsStore = create<FactsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.get(`/facts/client/${clientId}`);
-      set({ facts: data, isLoading: false });
+      set({ facts: data.map(normalizeFact), isLoading: false });
     } catch (error: any) {
       set({ 
         error: error.response?.data?.message || 'Failed to fetch client facts', 
@@ -34,8 +47,9 @@ export const useFactsStore = create<FactsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.post('/facts', factData);
+      const newFact = normalizeFact(data); // ✅ normaliza
       set(state => ({
-        facts: [data, ...state.facts],
+        facts: [newFact, ...state.facts],
         isLoading: false
       }));
     } catch (error: any) {
@@ -59,6 +73,22 @@ export const useFactsStore = create<FactsState>((set, get) => ({
     } catch (error: any) {
       set({ 
         error: error.response?.data?.message || 'Failed to update fact', 
+        isLoading: false 
+      });
+    }
+  },
+
+  deleteFact: async (factId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.delete(`/facts/${factId}`);
+      set(state => ({
+        facts: state.facts.filter(fact => fact.id !== factId),
+        isLoading: false
+      }));
+    } catch (error: any) {
+      set({ 
+        error: error.response?.data?.message || 'Failed to delete fact', 
         isLoading: false 
       });
     }

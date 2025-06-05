@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { Client } from '../../clients/entities/client.entity';
 import { User } from '../../users/entities/user.entity';
+import { Document } from '../../documents/entities/document.entity';
+import { Activity } from './activity.entity';
 
 export enum ProcessStatus {
   PENDING = 'pending',
@@ -62,6 +64,12 @@ export class Process {
 
   @Column({ nullable: true })
   caseNumber?: string;
+
+  @OneToMany(() => Document, document => document.process)
+  documents: Document[];
+
+  @OneToMany(() => Activity, activity => activity.process)
+  activities: Activity[];
 
   @CreateDateColumn()
   createdAt: Date;

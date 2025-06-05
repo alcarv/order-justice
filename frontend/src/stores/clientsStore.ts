@@ -50,8 +50,9 @@ export const useClientsStore = create<ClientsState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.post('/clients', clientData);
+      const newClient = { ...response.data, processes: [] }; // Initialize with empty processes array
       set(state => ({ 
-        clients: [...state.clients, response.data],
+        clients: [...state.clients, newClient],
         isLoading: false 
       }));
     } catch (error: any) {

@@ -11,9 +11,8 @@ interface ClientCardProps {
 const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
   const { processes } = useProcessesStore();
   
-  // Get active processes count
   const activeProcesses = processes.filter(p => 
-    client.processes.includes(p.id) && 
+    client.processes?.includes(p.id) && 
     p.status !== 'closed' && 
     p.status !== 'archived'
   ).length;
@@ -44,7 +43,7 @@ const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
               <div className="flex items-center mt-1">
                 <FileText className="h-4 w-4 text-slate-400 mr-1" />
                 <span className="text-sm text-slate-500">
-                  {client.processes.length} {client.processes.length === 1 ? 'process' : 'processes'}
+                  {client.processes?.length || 0} {(client.processes?.length || 0) === 1 ? 'process' : 'processes'}
                   {activeProcesses > 0 && ` (${activeProcesses} active)`}
                 </span>
               </div>

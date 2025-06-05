@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.8
+    environment:
+      POSTGRES_USER: local_user
+      POSTGRES_PASSWORD: localsenha
+      POSTGRES_DB: local_order
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api_order:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: npm run dev
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      NODE_ENV: development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

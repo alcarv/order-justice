@@ -33,6 +33,34 @@ export type ProcessStatus =
 
 export type ProcessPriority = 'low' | 'medium' | 'high' | 'urgent';
 
+export type DocumentType = 
+  | 'CPF'
+  | 'RG'
+  | 'CNH'
+  | 'Certidao_Nascimento'
+  | 'Certidao_Casamento'
+  | 'Comprovante_Residencia'
+  | 'Procuracao'
+  | 'Contrato'
+  | 'Peticao'
+  | 'Decisao'
+  | 'Outros';
+
+export interface Document {
+  id: string;
+  processId: string;
+  name: string;
+  description?: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy: string;
+  uploadedAt: string;
+  documentType: DocumentType;
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
 export interface Process {
   id: string;
   title: string;
@@ -40,8 +68,8 @@ export interface Process {
   clientId: string;
   status: ProcessStatus;
   priority: ProcessPriority;
-  assignedTo: string[];  // Array of user IDs
-  createdBy: string;     // User ID
+  assignedTo: string[];
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
   dueDate?: string;
@@ -51,23 +79,12 @@ export interface Process {
   activities: Activity[];
 }
 
-export interface Document {
-  id: string;
-  name: string;
-  processId: string;
-  fileUrl: string;
-  fileType: string;
-  uploadedBy: string;  // User ID
-  uploadedAt: string;
-  description?: string;
-}
-
 export interface Activity {
   id: string;
   processId: string;
   type: 'note' | 'status_change' | 'document_added' | 'assignment_change';
   description: string;
-  createdBy: string;  // User ID
+  createdBy: string;
   createdAt: string;
 }
 
@@ -108,6 +125,16 @@ export interface ClientFact {
   processId?: string;
 }
 
+export interface ApiClientFact {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  client: { id: string };
+  reportedBy: { id: string };
+  process?: { id: string };
+}
+
 export interface AppNotification {
   id: string;
   title: string;
@@ -125,7 +152,7 @@ export interface CalendarEvent {
   startTime: string;
   endTime: string;
   location?: string;
-  processId?: string;  // Optional link to a process
-  clientId?: string;   // Optional link to a client
-  createdBy: string;   // User ID
+  processId?: string;
+  clientId?: string;
+  createdBy: string;
 }
