@@ -105,10 +105,8 @@ export type ClientServiceStatus =
 
 export interface ClientService {
   id: string;
-  clientId: string;
-  serviceId: string;
+  service: Service;
   status: ClientServiceStatus;
-  assignedTo: string;
   startedAt?: string;
   completedAt?: string;
   createdAt: string;
@@ -155,4 +153,13 @@ export interface CalendarEvent {
   processId?: string;
   clientId?: string;
   createdBy: string;
+}
+export interface DocumentTypeItem {
+  id: string;
+  type: DocumentType;
+  label: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

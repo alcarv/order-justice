@@ -3,6 +3,7 @@ import { User } from '../../users/entities/user.entity';
 import { Client } from '../../clients/entities/client.entity';
 import { Process } from '../../processes/entities/process.entity';
 import { Service } from '../../services/entities/service.entity';
+import { DocumentType } from '../../document-types/entities/document-type.entity';
 
 @Entity('companies')
 export class Company {
@@ -12,7 +13,7 @@ export class Company {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   cnpj: string;
 
   @Column()
@@ -38,6 +39,9 @@ export class Company {
 
   @OneToMany(() => Service, service => service.company)
   services: Service[];
+
+  @OneToMany(() => DocumentType, documentType => documentType.company)
+  documentTypes: DocumentType[];
 
   @CreateDateColumn()
   createdAt: Date;

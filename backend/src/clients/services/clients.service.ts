@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Client } from '../entities/client.entity';
@@ -12,23 +12,24 @@ export class ClientsService {
     private clientsRepository: Repository<Client>,
   ) {}
 
-  async findAll(search?: string) {
+  async findAll(companyId: string, search?: string) {
+    const queryBuilder = this.clientsRepository.createQueryBuilder('client')
+      .leftJoinAndSelect('client.processes', 'processes')
+      .where('client.companyId = :companyId', { companyId });
+
     if (search) {
-      return this.clientsRepository.find({
-        where: [
-          { name: ILike(`%${search}%`) },
-          { email: ILike(`%${search}%`) },
-          { phone: ILike(`%${search}%`) },
-        ],
-        relations: ['processes'],
-      });
+      queryBuilder.andWhere(
+        '(client.name ILIKE :search OR client.email ILIKE :search OR client.phone ILIKE :search)',
+        { search: `%${search}%` }
+      );
     }
-    return this.clientsRepository.find({ relations: ['processes'] });
+
+    return queryBuilder.getMany();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId: string) {
     const client = await this.clientsRepository.findOne({
-      where: { id },
+      where: { id, company: { id: companyId } },
       relations: ['processes'],
     });
     
@@ -39,19 +40,22 @@ export class ClientsService {
     return client;
   }
 
-  async create(createClientDto: CreateClientDto) {
-    const client = this.clientsRepository.create(createClientDto);
+  async create(createClientDto: CreateClientDto, companyId: string) {
+    const client = this.clientsRepository.create({
+      ...createClientDto,
+      company: { id: companyId },
+    });
     return this.clientsRepository.save(client);
   }
 
-  async update(id: string, updateClientDto: UpdateClientDto) {
-    const client = await this.findOne(id);
+  async update(id: string, updateClientDto: UpdateClientDto, companyId: string) {
+    const client = await this.findOne(id, companyId);
     Object.assign(client, updateClientDto);
     return this.clientsRepository.save(client);
   }
 
-  async remove(id: string) {
-    const client = await this.findOne(id);
+  async remove(id: string, companyId: string) {
+    const client = await this.findOne(id, companyId);
     return this.clientsRepository.remove(client);
   }
 }

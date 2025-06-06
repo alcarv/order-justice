@@ -49,7 +49,7 @@ export const useProcessesStore = create<ProcessesState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.get(`/processes/${id}`);
-      set({ processes: response.data, isLoading: false });
+      set({ selectedProcess: response.data, isLoading: false });
     } catch (error: any) {
       set({ 
         error: error.response?.data?.message || 'Failed to fetch process details', 

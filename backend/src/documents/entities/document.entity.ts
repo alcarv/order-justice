@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { Process } from '../../processes/entities/process.entity';
 import { User } from '../../users/entities/user.entity';
+import { DocumentType } from '../../document-types/entities/document-type.entity';
 
 @Entity('documents')
 export class Document {
@@ -30,6 +31,9 @@ export class Document {
 
   @Column({ type: 'timestamp' })
   uploadedAt: Date;
+
+  @ManyToOne(() => DocumentType, { nullable: true })
+  documentType: DocumentType;
 
   @Column('text', { array: true, default: [] })
   tags: string[];

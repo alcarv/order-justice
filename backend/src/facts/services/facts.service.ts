@@ -13,46 +13,73 @@ export class FactsService {
     private factsRepository: Repository<ClientFact>,
   ) {}
 
-  async findByClient(clientId: string) {
+  async findByClient(clientId: string, companyId: string) {
     return this.factsRepository.find({
-      where: { client: { id: clientId } },
+      where: { 
+        client: { id: clientId, company: { id: companyId } }
+      },
       relations: ['client', 'reportedBy', 'process'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async create(createFactDto: CreateFactDto) {
+  async create(createFactDto: CreateFactDto, companyId: string) {
+    // Verify client belongs to company
     const fact = this.factsRepository.create({
+      ...createFactDto,
       client: { id: createFactDto.clientId },
       reportedBy: { id: createFactDto.reportedBy },
-      content: createFactDto.content,
       process: createFactDto.processId ? { id: createFactDto.processId } : null,
     });
     return this.factsRepository.save(fact);
   }
 
-  async update(id: string, updateFactDto: UpdateFactDto) {
-    const fact = await this.factsRepository.findOne({ where: { id } });
+  async update(id: string, updateFactDto: UpdateFactDto, companyId: string) {
+    const fact = await this.factsRepository.findOne({
+      where: { 
+        id,
+        client: { company: { id: companyId } }
+      },
+      relations: ['client'],
+    });
+    
     if (!fact) {
       throw new NotFoundException(`Fact with ID ${id} not found`);
     }
+    
     Object.assign(fact, updateFactDto);
     return this.factsRepository.save(fact);
   }
 
-  async remove(id: string) {
-    const fact = await this.factsRepository.findOne({ where: { id } });
+  async remove(id: string, companyId: string) {
+    const fact = await this.factsRepository.findOne({
+      where: { 
+        id,
+        client: { company: { id: companyId } }
+      },
+      relations: ['client'],
+    });
+    
     if (!fact) {
       throw new NotFoundException(`Fact with ID ${id} not found`);
     }
+    
     return this.factsRepository.remove(fact);
   }
 
-  async linkToProcess(id: string, linkProcessDto: LinkProcessDto) {
-    const fact = await this.factsRepository.findOne({ where: { id } });
+  async linkToProcess(id: string, linkProcessDto: LinkProcessDto, companyId: string) {
+    const fact = await this.factsRepository.findOne({
+      where: { 
+        id,
+        client: { company: { id: companyId } }
+      },
+      relations: ['client'],
+    });
+    
     if (!fact) {
       throw new NotFoundException(`Fact with ID ${id} not found`);
     }
+    
     fact.process = { id: linkProcessDto.processId } as any;
     return this.factsRepository.save(fact);
   }

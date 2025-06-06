@@ -1,4 +1,3 @@
-// backend/src/processes/processes.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Process } from './entities/process.entity';

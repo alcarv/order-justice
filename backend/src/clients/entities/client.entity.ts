@@ -28,7 +28,7 @@ export class Client {
   @Column({ nullable: true })
   avatar?: string;
 
-  @ManyToOne(() => Company, company => company.clients)
+  @ManyToOne(() => Company, company => company.clients, { nullable: false })
   company: Company;
 
   @OneToMany(() => Process, process => process.client)

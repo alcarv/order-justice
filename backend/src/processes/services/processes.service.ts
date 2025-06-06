@@ -5,7 +5,7 @@ import { Process } from '../entities/process.entity';
 import { Activity } from '../entities/activity.entity';
 import { CreateProcessDto } from '../dto/create-process.dto';
 import { UpdateProcessDto } from '../dto/update-process.dto';
-import { AddActivityDto, ActivityType } from '../dto/add-activity.dto';
+import { AddActivityDto } from '../dto/add-activity.dto';
 
 @Injectable()
 export class ProcessesService {
@@ -13,14 +13,15 @@ export class ProcessesService {
     @InjectRepository(Process)
     private processesRepository: Repository<Process>,
     @InjectRepository(Activity)
-    private activityRepository: Repository<Activity>,
+    private activitiesRepository: Repository<Activity>,
   ) {}
 
-  async findAll(filters: { clientId?: string; status?: string; priority?: string }) {
+  async findAll(companyId: string, filters: { clientId?: string; status?: string; priority?: string }) {
     const query = this.processesRepository.createQueryBuilder('process')
       .leftJoinAndSelect('process.client', 'client')
       .leftJoinAndSelect('process.assignedTo', 'assignedTo')
       .leftJoinAndSelect('process.activities', 'activities')
+      .where('process.companyId = :companyId', { companyId })
       .orderBy('process.updatedAt', 'DESC');
 
     if (filters.clientId) {
@@ -36,9 +37,9 @@ export class ProcessesService {
     return query.getMany();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId: string) {
     const process = await this.processesRepository.findOne({
-      where: { id },
+      where: { id, company: { id: companyId } },
       relations: ['client', 'assignedTo', 'activities', 'documents'],
     });
 
@@ -49,63 +50,106 @@ export class ProcessesService {
     return process;
   }
 
-  async create(createProcessDto: CreateProcessDto) {
-    const process = this.processesRepository.create({
-      ...createProcessDto,
+  async create(createProcessDto: CreateProcessDto, companyId: string) {
+    const processData = {
+      title: createProcessDto.title,
+      description: createProcessDto.description,
+      status: createProcessDto.status,
+      priority: createProcessDto.priority,
+      dueDate: createProcessDto.dueDate ? new Date(createProcessDto.dueDate) : undefined,
+      court: createProcessDto.court,
+      caseNumber: createProcessDto.caseNumber,
       client: { id: createProcessDto.clientId },
-      assignedTo: createProcessDto.assignedTo.map(id => ({ id })),
       createdBy: { id: createProcessDto.createdBy },
-    });
+      company: { id: companyId },
+    };
 
+    const process = this.processesRepository.create(processData);
     const savedProcess = await this.processesRepository.save(process);
 
-    // Create initial activity
-    const activity = this.activityRepository.create({
-      process: savedProcess,
-      type: ActivityType.STATUS_CHANGE,
-      description: `Process created with status ${createProcessDto.status}`,
-      createdBy: { id: createProcessDto.createdBy },
+    if (createProcessDto.assignedTo && createProcessDto.assignedTo.length > 0) {
+      await this.processesRepository
+        .createQueryBuilder()
+        .relation(Process, 'assignedTo')
+        .of(savedProcess.id)
+        .add(createProcessDto.assignedTo);
+    }
+
+    return this.findOne(savedProcess.id, companyId);
+  }
+
+  async update(id: string, updateProcessDto: UpdateProcessDto, companyId: string) {
+    const process = await this.findOne(id, companyId);
+    
+    const updateData = {
+      title: updateProcessDto.title,
+      description: updateProcessDto.description,
+      status: updateProcessDto.status,
+      priority: updateProcessDto.priority,
+      dueDate: updateProcessDto.dueDate ? new Date(updateProcessDto.dueDate) : undefined,
+      court: updateProcessDto.court,
+      caseNumber: updateProcessDto.caseNumber,
+    };
+
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
     });
 
-    await this.activityRepository.save(activity);
+    await this.processesRepository.update(id, updateData);
 
-    return this.findOne(savedProcess.id);
-  }
+    if (updateProcessDto.assignedTo !== undefined) {
+      await this.processesRepository
+        .createQueryBuilder()
+        .relation(Process, 'assignedTo')
+        .of(id)
+        .remove(process.assignedTo.map(user => user.id));
 
-  async update(id: string, updateProcessDto: UpdateProcessDto) {
-    const process = await this.findOne(id);
-    
+      if (updateProcessDto.assignedTo.length > 0) {
+        await this.processesRepository
+          .createQueryBuilder()
+          .relation(Process, 'assignedTo')
+          .of(id)
+          .add(updateProcessDto.assignedTo);
+      }
+    }
+
     if (updateProcessDto.clientId) {
-      process.client = { id: updateProcessDto.clientId } as any;
-    }
-    if (updateProcessDto.assignedTo) {
-      process.assignedTo = updateProcessDto.assignedTo.map(id => ({ id } as any));
+      await this.processesRepository.update(id, {
+        client: { id: updateProcessDto.clientId }
+      });
     }
 
-    Object.assign(process, updateProcessDto);
-    return this.processesRepository.save(process);
+    return this.findOne(id, companyId);
   }
 
-  async remove(id: string) {
-    const process = await this.findOne(id);
+  async remove(id: string, companyId: string) {
+    const process = await this.findOne(id, companyId);
     return this.processesRepository.remove(process);
   }
 
-  async addActivity(id: string, addActivityDto: AddActivityDto) {
-    const process = await this.findOne(id);
+  async addActivity(id: string, addActivityDto: AddActivityDto, companyId: string, userId: string) {
+    const process = await this.findOne(id, companyId);
     
-    const activity = this.activityRepository.create({
-      process,
-      ...addActivityDto,
-      createdBy: process.createdBy,
+    const activity = this.activitiesRepository.create({
+      type: addActivityDto.type,
+      description: addActivityDto.description,
+      process: { id: process.id },
+      createdBy: { id: userId },
     });
 
-    await this.activityRepository.save(activity);
-    return this.findOne(id);
+    const savedActivity = await this.activitiesRepository.save(activity);
+    
+    return this.findOne(id, companyId);
   }
 
-  async getActivities(id: string) {
-    const process = await this.findOne(id);
-    return process.activities;
+  async getActivities(id: string, companyId: string) {
+    const process = await this.findOne(id, companyId);
+    return this.activitiesRepository.find({
+      where: { process: { id: process.id } },
+      relations: ['createdBy'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }

@@ -15,10 +15,10 @@ export class ClientService {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Client)
+  @ManyToOne(() => Client, { eager: false })
   client: Client;
 
-  @ManyToOne(() => Service)
+  @ManyToOne(() => Service, { eager: false })
   service: Service;
 
   @Column({
@@ -28,7 +28,7 @@ export class ClientService {
   })
   status: ClientServiceStatus;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: false })
   assignedTo: User;
 
   @Column({ type: 'timestamp', nullable: true })

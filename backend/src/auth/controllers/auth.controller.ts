@@ -23,8 +23,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto, @Request() req?: any) {
+    // If user is authenticated and has a company, use their company
+    const companyId = req?.user?.companyId;
+    return this.authService.register(registerDto, companyId);
   }
 
   @Get('profile')

@@ -1,7 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
 import { Process } from './process.entity';
 import { User } from '../../users/entities/user.entity';
-import { ActivityType } from '../dto/add-activity.dto';
+
+export enum ActivityType {
+  NOTE = 'note',
+  STATUS_CHANGE = 'status_change',
+  DOCUMENT_ADDED = 'document_added',
+  ASSIGNMENT_CHANGE = 'assignment_change'
+}
 
 @Entity('activities')
 export class Activity {
@@ -13,7 +19,7 @@ export class Activity {
 
   @Column({
     type: 'enum',
-    enum: ActivityType,
+    enum: ActivityType
   })
   type: ActivityType;
 

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,9 +16,12 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersRepository.findOne({ where: { email } });
+    const user = await this.usersRepository.findOne({ 
+      where: { email },
+      relations: ['company'],
+    });
     if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
+      const { password: userPassword, ...result } = user;
       return result;
     }
     return null;
@@ -30,32 +33,53 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload = { 
+      email: user.email, 
+      sub: user.id, 
+      role: user.role,
+      companyId: user.company?.id,
+    };
     return {
       access_token: this.jwtService.sign(payload),
       user,
     };
   }
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto, companyId?: string) {
     const existingUser = await this.usersRepository.findOne({
       where: { email: registerDto.email },
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('Email already exists');
+      throw new ConflictException('Email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    const user = this.usersRepository.create({
-      ...registerDto,
+    
+    const userData = {
+      name: registerDto.name,
+      email: registerDto.email,
       password: hashedPassword,
-    });
+      role: registerDto.role,
+    };
+
+    const user = this.usersRepository.create(userData);
+    
+    if (companyId) {
+      user.company = { id: companyId } as any;
+    }
 
     const savedUser = await this.usersRepository.save(user);
-    const { password, ...result } = savedUser;
     
-    const payload = { email: result.email, sub: result.id, role: result.role };
+    const { password: userPassword, ...result } = savedUser;
+    
+    const payload = { 
+      email: result.email, 
+      sub: result.id, 
+      role: result.role,
+      companyId: companyId,
+    };
+    
     return {
       access_token: this.jwtService.sign(payload),
       user: result,

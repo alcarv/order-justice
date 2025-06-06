@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Document } from '../entities/document.entity';
+import { Process } from '../../processes/entities/process.entity';
 import { CreateDocumentDto } from '../dto/create-document.dto';
 import { GetUploadUrlDto } from '../dto/get-upload-url.dto';
 
@@ -16,6 +17,8 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Document)
     private documentsRepository: Repository<Document>,
+    @InjectRepository(Process)
+    private processesRepository: Repository<Process>,
     private configService: ConfigService,
   ) {
     this.s3Client = new S3Client({
@@ -28,7 +31,16 @@ export class DocumentsService {
     this.bucket = this.configService.get('AWS_S3_BUCKET');
   }
 
-  async getUploadUrl(dto: GetUploadUrlDto) {
+  async getUploadUrl(dto: GetUploadUrlDto, companyId: string) {
+    // Verify process belongs to company
+    const process = await this.processesRepository.findOne({
+      where: { id: dto.processId, company: { id: companyId } },
+    });
+
+    if (!process) {
+      throw new NotFoundException(`Process with ID ${dto.processId} not found`);
+    }
+
     const key = `documents/${dto.processId}/${Date.now()}-${dto.fileName}`;
     
     const command = new PutObjectCommand({
@@ -43,7 +55,16 @@ export class DocumentsService {
     return { uploadUrl, fileUrl };
   }
 
-  async create(createDocumentDto: CreateDocumentDto, userId: string) {
+  async create(createDocumentDto: CreateDocumentDto, userId: string, companyId: string) {
+    // Verify process belongs to company
+    const process = await this.processesRepository.findOne({
+      where: { id: createDocumentDto.processId, company: { id: companyId } },
+    });
+
+    if (!process) {
+      throw new NotFoundException(`Process with ID ${createDocumentDto.processId} not found`);
+    }
+
     const document = this.documentsRepository.create({
       ...createDocumentDto,
       uploadedBy: { id: userId },
@@ -52,5 +73,22 @@ export class DocumentsService {
     });
 
     return this.documentsRepository.save(document);
+  }
+
+  async getProcessDocuments(processId: string, companyId: string) {
+    // Verify process belongs to company
+    const process = await this.processesRepository.findOne({
+      where: { id: processId, company: { id: companyId } },
+    });
+
+    if (!process) {
+      throw new NotFoundException(`Process with ID ${processId} not found`);
+    }
+
+    return this.documentsRepository.find({
+      where: { process: { id: processId } },
+      relations: ['uploadedBy'],
+      order: { uploadedAt: 'DESC' },
+    });
   }
 }

@@ -17,35 +17,45 @@ export class ServicesService {
     private clientServicesRepository: Repository<ClientService>,
   ) {}
 
-  async findAll() {
-    return this.servicesRepository.find();
+  async findAll(companyId: string) {
+    return this.servicesRepository.find({
+      where: { company: { id: companyId } },
+      order: { title: 'ASC' },
+    });
   }
 
-  async findOne(id: string) {
-    const service = await this.servicesRepository.findOne({ where: { id } });
+  async findOne(id: string, companyId: string) {
+    const service = await this.servicesRepository.findOne({
+      where: { id, company: { id: companyId } },
+    });
     if (!service) {
       throw new NotFoundException(`Service with ID ${id} not found`);
     }
     return service;
   }
 
-  async create(createServiceDto: CreateServiceDto) {
-    const service = this.servicesRepository.create(createServiceDto);
+  async create(createServiceDto: CreateServiceDto, companyId: string) {
+    const service = this.servicesRepository.create({
+      ...createServiceDto,
+      company: { id: companyId },
+    });
     return this.servicesRepository.save(service);
   }
 
-  async update(id: string, updateServiceDto: UpdateServiceDto) {
-    const service = await this.findOne(id);
+  async update(id: string, updateServiceDto: UpdateServiceDto, companyId: string) {
+    const service = await this.findOne(id, companyId);
     Object.assign(service, updateServiceDto);
     return this.servicesRepository.save(service);
   }
 
-  async remove(id: string) {
-    const service = await this.findOne(id);
+  async remove(id: string, companyId: string) {
+    const service = await this.findOne(id, companyId);
     return this.servicesRepository.remove(service);
   }
 
-  async startService(startServiceDto: StartServiceDto) {
+  async startService(startServiceDto: StartServiceDto, companyId: string) {
+    await this.findOne(startServiceDto.serviceId, companyId);
+    
     const clientService = this.clientServicesRepository.create({
       client: { id: startServiceDto.clientId },
       service: { id: startServiceDto.serviceId },
@@ -53,18 +63,34 @@ export class ServicesService {
       status: ClientServiceStatus.PENDING,
       startedAt: new Date(),
     });
-    return this.clientServicesRepository.save(clientService);
-  }
-
-  async getClientServices(clientId: string) {
-    return this.clientServicesRepository.find({
-      where: { client: { id: clientId } },
-      relations: ['service'],
+    
+    const savedService = await this.clientServicesRepository.save(clientService);
+    
+    return this.clientServicesRepository.findOne({
+      where: { id: savedService.id },
+      relations: ['service', 'client', 'assignedTo'],
     });
   }
 
-  async updateStatus(id: string, updateStatusDto: UpdateServiceStatusDto) {
-    const clientService = await this.clientServicesRepository.findOne({ where: { id } });
+  async getClientServices(clientId: string, companyId: string) {
+    return this.clientServicesRepository.find({
+      where: { 
+        client: { id: clientId, company: { id: companyId } }
+      },
+      relations: ['service', 'assignedTo'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async updateStatus(id: string, updateStatusDto: UpdateServiceStatusDto, companyId: string) {
+    const clientService = await this.clientServicesRepository.findOne({
+      where: { 
+        id,
+        client: { company: { id: companyId } }
+      },
+      relations: ['client', 'service'],
+    });
+    
     if (!clientService) {
       throw new NotFoundException(`Client service with ID ${id} not found`);
     }
@@ -74,6 +100,27 @@ export class ServicesService {
       clientService.completedAt = new Date();
     }
 
-    return this.clientServicesRepository.save(clientService);
+    const savedService = await this.clientServicesRepository.save(clientService);
+    
+    return this.clientServicesRepository.findOne({
+      where: { id: savedService.id },
+      relations: ['service', 'client', 'assignedTo'],
+    });
+  }
+
+  async deleteClientService(id: string, companyId: string) {
+    const clientService = await this.clientServicesRepository.findOne({
+      where: { 
+        id,
+        client: { company: { id: companyId } }
+      },
+      relations: ['client'],
+    });
+    
+    if (!clientService) {
+      throw new NotFoundException(`Client service with ID ${id} not found`);
+    }
+
+    return this.clientServicesRepository.remove(clientService);
   }
 }
