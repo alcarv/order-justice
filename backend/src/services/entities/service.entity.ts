@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity('services')
 export class Service {
@@ -13,6 +14,9 @@ export class Service {
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
+
+  @ManyToOne(() => Company, company => company.services)
+  company: Company;
 
   @CreateDateColumn()
   createdAt: Date;

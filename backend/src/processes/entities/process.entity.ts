@@ -3,6 +3,7 @@ import { Client } from '../../clients/entities/client.entity';
 import { User } from '../../users/entities/user.entity';
 import { Document } from '../../documents/entities/document.entity';
 import { Activity } from './activity.entity';
+import { Company } from '../../companies/entities/company.entity';
 
 export enum ProcessStatus {
   PENDING = 'pending',
@@ -55,6 +56,9 @@ export class Process {
 
   @ManyToOne(() => User)
   createdBy: User;
+
+  @ManyToOne(() => Company, company => company.processes)
+  company: Company;
 
   @Column({ nullable: true })
   dueDate?: Date;
