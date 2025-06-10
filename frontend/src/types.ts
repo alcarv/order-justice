@@ -6,6 +6,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  isActive?: boolean;
+  lastLogin?: string;
 }
 
 export interface Client {
@@ -105,12 +107,15 @@ export type ClientServiceStatus =
 
 export interface ClientService {
   id: string;
-  service: Service;
+  clientId: string;
+  serviceId: string;
   status: ClientServiceStatus;
+  assignedTo: string;
   startedAt?: string;
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
+  service: Service;
 }
 
 export interface ClientFact {

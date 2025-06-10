@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scale as ScaleBalance } from 'lucide-react';
+import { Scale as ScaleBalance, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 
 const Login = () => {
@@ -11,8 +11,12 @@ const Login = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
-    navigate('/');
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (error: any) {
+      console.log(error);
+    }
   };
   
   return (
@@ -91,8 +95,18 @@ const Login = () => {
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">
-                {error}
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Login Failed
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      {error}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

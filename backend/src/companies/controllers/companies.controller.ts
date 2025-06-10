@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Put, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -6,6 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { CompaniesService } from '../services/companies.service';
 import { CreateCompanyDto } from '../dto/create-company.dto';
+import { UpdateLicenseDto } from '../dto/update-license.dto';
 
 @ApiTags('companies')
 @Controller('companies')
@@ -26,5 +27,14 @@ export class CompaniesController {
   @ApiResponse({ status: 200, description: 'Return all companies' })
   findAll() {
     return this.companiesService.findAll();
+  }
+
+  @Put(':id/license')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Update company license limit' })
+  @ApiResponse({ status: 200, description: 'License limit updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid license limit' })
+  updateLicense(@Param('id') id: string, @Body() updateLicenseDto: UpdateLicenseDto) {
+    return this.companiesService.updateLicenseLimit(id, updateLicenseDto.licenseLimit);
   }
 }

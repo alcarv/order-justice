@@ -28,6 +28,12 @@ export class Company {
   @Column({ nullable: true })
   logo?: string;
 
+  @Column({ default: 5 })
+  licenseLimit: number;
+
+  @Column({ default: 0 })
+  licenseUsed: number;
+
   @OneToMany(() => User, user => user.company)
   users: User[];
 

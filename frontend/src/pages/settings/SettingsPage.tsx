@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
-import { Settings, User, Bell, Shield, Database, Sliders } from 'lucide-react';
+import { Settings, User, Bell, Shield, Database, Sliders, Users } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
 import ParametersSection from './ParameterSection';
+import LicenseManagementSection from './LicenseManagementSection';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('parameters');
+  const { user } = useAuthStore();
 
   const tabs = [
     { id: 'parameters', name: 'Parameters', icon: Sliders },
+    { id: 'licenses', name: 'License Management', icon: Users, adminOnly: true },
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'security', name: 'Security', icon: Shield },
     { id: 'data', name: 'Data & Privacy', icon: Database },
   ];
+
+  const availableTabs = tabs.filter(tab => !tab.adminOnly || user?.role === 'admin');
 
   return (
     <div className="space-y-6 pb-16">
@@ -24,15 +30,15 @@ const SettingsPage = () => {
 
       {/* Tabs */}
       <div className="border-b border-slate-200">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => {
+        <nav className="-mb-px flex space-x-8 overflow-x-auto">
+          {availableTabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center py-4 px-1 border-b-2 text-sm font-medium
+                  flex items-center py-4 px-1 border-b-2 text-sm font-medium whitespace-nowrap
                   ${activeTab === tab.id
                     ? 'border-yellow-500 text-yellow-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
@@ -49,6 +55,7 @@ const SettingsPage = () => {
       {/* Tab Content */}
       <div className="mt-6">
         {activeTab === 'parameters' && <ParametersSection />}
+        {activeTab === 'licenses' && user?.role === 'admin' && <LicenseManagementSection />}
         {activeTab === 'profile' && (
           <div className="bg-white shadow-sm rounded-lg p-6">
             <h2 className="text-lg font-medium text-slate-900 mb-4">Profile Settings</h2>

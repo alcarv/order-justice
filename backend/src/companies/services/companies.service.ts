@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from '../entities/company.entity';
@@ -12,7 +12,11 @@ export class CompaniesService {
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto) {
-    const company = this.companiesRepository.create(createCompanyDto);
+    const company = this.companiesRepository.create({
+      ...createCompanyDto,
+      licenseLimit: 5,
+      licenseUsed: 0,
+    });
     return this.companiesRepository.save(company);
   }
 
@@ -22,5 +26,39 @@ export class CompaniesService {
 
   async findOne(id: string) {
     return this.companiesRepository.findOne({ where: { id } });
+  }
+
+  async updateLicenseLimit(id: string, newLimit: number) {
+    const company = await this.companiesRepository.findOne({ where: { id } });
+    
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    if (newLimit < company.licenseUsed) {
+      throw new BadRequestException(
+        `Cannot set license limit to ${newLimit}. Currently ${company.licenseUsed} licenses are in use.`
+      );
+    }
+
+    await this.companiesRepository.update(id, { licenseLimit: newLimit });
+    
+    return this.companiesRepository.findOne({ where: { id } });
+  }
+
+  async getLicenseInfo(companyId: string) {
+    const company = await this.companiesRepository.findOne({
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    return {
+      licenseLimit: company.licenseLimit,
+      licenseUsed: company.licenseUsed,
+      availableLicenses: company.licenseLimit - company.licenseUsed,
+    };
   }
 }
