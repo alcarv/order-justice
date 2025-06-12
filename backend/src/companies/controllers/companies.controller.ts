@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, Put, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { SessionGuard } from '../../auth/guards/session.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
@@ -10,7 +10,7 @@ import { UpdateLicenseDto } from '../dto/update-license.dto';
 
 @ApiTags('companies')
 @Controller('companies')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 

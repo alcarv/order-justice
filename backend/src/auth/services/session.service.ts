@@ -24,13 +24,9 @@ export class SessionService {
     ipAddress?: string, 
     userAgent?: string
   ): Promise<{ sessionToken: string; accessToken: string }> {
-    const existingSession = await this.sessionRepository.findOne({
-      where: { user: { id: user.id }, isActive: true },
-    });
+    await this.cleanupExpiredSessions();
 
-    if (existingSession) {
-      throw new ForbiddenException('User already has an active session. Please logout from other devices first.');
-    }
+    await this.deactivateUserSessions(user.id);
 
     const company = await this.companyRepository.findOne({
       where: { id: user.company.id },
@@ -186,12 +182,13 @@ export class SessionService {
   }
 
   async cleanupExpiredSessions(): Promise<void> {
+    const now = new Date();
+    
     const expiredSessions = await this.sessionRepository.find({
       where: { isActive: true },
       relations: ['user', 'user.company'],
     });
 
-    const now = new Date();
     const expiredSessionIds: string[] = [];
     const companyUpdates: Map<string, number> = new Map();
 
@@ -211,10 +208,15 @@ export class SessionService {
         { isActive: false }
       );
 
-      await this.userRepository.update(
-        { currentSession: { id: { $in: expiredSessionIds } } as any },
-        { currentSession: null }
-      );
+      const usersWithExpiredSessions = await this.userRepository.find({
+        where: { currentSession: { id: { $in: expiredSessionIds } } as any },
+      });
+
+      for (const user of usersWithExpiredSessions) {
+        await this.userRepository.update(user.id, {
+          currentSession: null,
+        });
+      }
 
       for (const [companyId, expiredCount] of companyUpdates) {
         const company = await this.companyRepository.findOne({

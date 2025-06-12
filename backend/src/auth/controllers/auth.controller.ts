@@ -4,9 +4,10 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { SessionGuard } from '../guards/session.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../decorators/public.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 
 @ApiTags('auth')
@@ -14,6 +15,7 @@ import { UserRole } from '../../common/enums/user-role.enum';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
@@ -28,17 +30,18 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'User logout' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
   async logout(@Request() req: any) {
-    const sessionToken = req.headers['x-session-token'];
-    if (sessionToken) {
-      await this.authService.logout(sessionToken);
+    const sessionId = req.user?.sessionId;
+    if (sessionId) {
+      await this.authService.logout(sessionId);
     }
     return { message: 'Logged out successfully' };
   }
 
+  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User successfully created' })
@@ -50,7 +53,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -59,7 +62,7 @@ export class AuthController {
   }
 
   @Get('license-info')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Get company license information' })
   @ApiResponse({ status: 200, description: 'License info retrieved successfully' })
   getLicenseInfo(@Request() req) {
@@ -67,7 +70,7 @@ export class AuthController {
   }
 
   @Delete('force-logout/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(SessionGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Force logout a user (Admin only)' })
   @ApiResponse({ status: 200, description: 'User logged out successfully' })

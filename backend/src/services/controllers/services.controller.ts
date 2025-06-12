@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { SessionGuard } from '../../auth/guards/session.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CompanyGuard } from '../../common/guards/company.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -14,7 +14,7 @@ import { UpdateServiceStatusDto } from '../dto/update-service-status.dto';
 
 @ApiTags('services')
 @Controller('services')
-@UseGuards(JwtAuthGuard, CompanyGuard, RolesGuard)
+@UseGuards(SessionGuard, CompanyGuard, RolesGuard)
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 

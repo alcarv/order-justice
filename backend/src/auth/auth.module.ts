@@ -11,6 +11,7 @@ import { SessionService } from './services/session.service';
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { SessionGuard } from './guards/session.guard';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, SessionService, JwtStrategy, LocalStrategy],
-  exports: [JwtModule, AuthService, SessionService],
+  providers: [AuthService, SessionService, JwtStrategy, LocalStrategy, SessionGuard],
+  exports: [JwtModule, AuthService, SessionService, SessionGuard, TypeOrmModule],
 })
 export class AuthModule {}

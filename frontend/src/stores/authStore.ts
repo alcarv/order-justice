@@ -117,7 +117,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   forceLogoutUser: async (userId: string) => {
     try {
       await api.delete(`/auth/force-logout/${userId}`);
-      // Refresh license info after forcing logout
       get().fetchLicenseInfo();
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to logout user');

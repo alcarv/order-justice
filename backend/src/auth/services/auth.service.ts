@@ -70,18 +70,8 @@ export class AuthService {
     }
   }
 
-  async logout(sessionToken: string): Promise<void> {
-    const session = await this.sessionService.validateSession(sessionToken);
-    if (session) {
-      const user = await this.usersRepository.findOne({
-        where: { id: session.id },
-        relations: ['currentSession'],
-      });
-      
-      if (user?.currentSession) {
-        await this.sessionService.deactivateSession(user.currentSession.id);
-      }
-    }
+  async logout(sessionId: string): Promise<void> {
+    await this.sessionService.deactivateSession(sessionId);
   }
 
   async register(registerDto: RegisterDto, companyId?: string) {
@@ -177,7 +167,6 @@ export class AuthService {
   }
 
   async forceLogoutUser(adminUserId: string, targetUserId: string): Promise<void> {
-    // Verify admin has permission (same company)
     const adminUser = await this.usersRepository.findOne({
       where: { id: adminUserId },
       relations: ['company'],
