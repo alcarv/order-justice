@@ -7,6 +7,7 @@ import ClientsPage from './pages/clients/ClientsPage';
 import ClientDetailsPage from './pages/clients/ClientDetailsPage';
 import ProcessesPage from './pages/processes/ProcessesPage';
 import ProcessDetailsPage from './pages/processes/ProcessDetailsPage';
+import ContractsPage from './pages/contracts/ContractsPage';
 import EmployeesPage from './pages/employees/EmployeesPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -45,6 +46,7 @@ function App() {
             <Route path="clients/:id" element={<ClientDetailsPage />} />
             <Route path="processes" element={<ProcessesPage />} />
             <Route path="processes/:id" element={<ProcessDetailsPage />} />
+            <Route path="contracts" element={<ContractsPage />} />
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />

@@ -21,7 +21,8 @@ export interface Client {
   updatedAt: string;
   notes?: string;
   avatar?: string;
-  processes: string[]; // Array of process IDs
+  processes: string[];
+  contracts: string[];
 }
 
 export type ProcessStatus = 
@@ -47,6 +48,16 @@ export type DocumentType =
   | 'Peticao'
   | 'Decisao'
   | 'Outros';
+
+export interface DocumentTypeItem {
+  id: string;
+  type: DocumentType;
+  label: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Document {
   id: string;
@@ -128,14 +139,100 @@ export interface ClientFact {
   processId?: string;
 }
 
-export interface ApiClientFact {
+// Contract Types
+export type ContractStatus = 
+  | 'draft'
+  | 'active'
+  | 'completed'
+  | 'cancelled'
+  | 'expired';
+
+export type ContractType = 
+  | 'service'
+  | 'retainer'
+  | 'contingency'
+  | 'hourly'
+  | 'fixed';
+
+export type PaymentStatus = 
+  | 'pending'
+  | 'paid'
+  | 'overdue'
+  | 'cancelled';
+
+export type ContractDocumentType = 
+  | 'contract'
+  | 'amendment'
+  | 'invoice'
+  | 'receipt'
+  | 'other';
+
+export interface Contract {
   id: string;
-  content: string;
+  title: string;
+  description?: string;
+  contractNumber: string;
+  clientId: string;
+  processId?: string;
+  status: ContractStatus;
+  contractType: ContractType;
+  totalValue: number;
+  currency: string;
+  startDate: string;
+  endDate?: string;
+  createdBy: string;
+  signedAt?: string;
+  termsAndConditions?: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  values: ContractValue[];
+  history: ContractHistory[];
+  documents: ContractDocument[];
   createdAt: string;
   updatedAt: string;
-  client: { id: string };
-  reportedBy: { id: string };
-  process?: { id: string };
+  client?: Client;
+  process?: Process;
+}
+
+export interface ContractValue {
+  id: string;
+  contractId: string;
+  description: string;
+  amount: number;
+  dueDate?: string;
+  paidAt?: string;
+  paymentMethod?: string;
+  status: PaymentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractHistory {
+  id: string;
+  contractId: string;
+  action: string;
+  description: string;
+  oldValues?: Record<string, any>;
+  newValues?: Record<string, any>;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ContractDocument {
+  id: string;
+  contractId: string;
+  name: string;
+  description?: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  documentType: ContractDocumentType;
+  uploadedBy: string;
+  uploadedAt: string;
+  tags: string[];
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AppNotification {
@@ -158,13 +255,4 @@ export interface CalendarEvent {
   processId?: string;
   clientId?: string;
   createdBy: string;
-}
-export interface DocumentTypeItem {
-  id: string;
-  type: DocumentType;
-  label: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }

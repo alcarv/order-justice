@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, UserCog, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, UserCog, Settings, Contact as FileContract } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 
 const Sidebar = () => {
@@ -10,6 +10,7 @@ const Sidebar = () => {
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Processes', href: '/processes', icon: FileText },
+    { name: 'Contracts', href: '/contracts', icon: FileContract },
     { name: 'Employees', href: '/employees', icon: UserCog },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];

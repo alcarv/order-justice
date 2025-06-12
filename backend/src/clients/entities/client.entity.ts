@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne } from 'typeorm';
 import { Process } from '../../processes/entities/process.entity';
+import { Contract } from '../../contracts/entities/contract.entity';
 import { Company } from '../../companies/entities/company.entity';
 
 @Entity('clients')
@@ -33,6 +34,9 @@ export class Client {
 
   @OneToMany(() => Process, process => process.client)
   processes: Process[];
+
+  @OneToMany(() => Contract, contract => contract.client)
+  contracts: Contract[];
 
   @CreateDateColumn()
   createdAt: Date;

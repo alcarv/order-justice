@@ -4,6 +4,7 @@ import { Client } from '../../clients/entities/client.entity';
 import { Process } from '../../processes/entities/process.entity';
 import { Service } from '../../services/entities/service.entity';
 import { DocumentType } from '../../document-types/entities/document-type.entity';
+import { Contract } from '../../contracts/entities/contract.entity';
 
 @Entity('companies')
 export class Company {
@@ -48,6 +49,9 @@ export class Company {
 
   @OneToMany(() => DocumentType, documentType => documentType.company)
   documentTypes: DocumentType[];
+
+  @OneToMany(() => Contract, contract => contract.company)
+  contracts: Contract[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, UserCog, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, UserCog, Settings, Contact as FileContract } from 'lucide-react';
 
 const MobileNav = () => {
   const location = useLocation();
@@ -8,6 +8,7 @@ const MobileNav = () => {
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Processes', href: '/processes', icon: FileText },
+    { name: 'Contracts', href: '/contracts', icon: FileContract },
     { name: 'Employees', href: '/employees', icon: UserCog },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
@@ -19,7 +20,7 @@ const MobileNav = () => {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {navigation.map((item) => {
           const active = isActive(item.href);
           return (
@@ -30,8 +31,8 @@ const MobileNav = () => {
                 active ? 'text-yellow-600' : 'text-slate-600'
               }`}
             >
-              <item.icon className={`h-6 w-6 mb-1 ${active ? 'text-yellow-600' : 'text-slate-500'}`} />
-              <span>{item.name}</span>
+              <item.icon className={`h-5 w-5 mb-1 ${active ? 'text-yellow-600' : 'text-slate-500'}`} />
+              <span className="text-xs">{item.name}</span>
             </Link>
           );
         })}
