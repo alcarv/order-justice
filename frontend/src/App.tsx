@@ -8,6 +8,7 @@ import ClientDetailsPage from './pages/clients/ClientDetailsPage';
 import ProcessesPage from './pages/processes/ProcessesPage';
 import ProcessDetailsPage from './pages/processes/ProcessDetailsPage';
 import ContractsPage from './pages/contracts/ContractsPage';
+import ContractDetailsPage from './pages/contracts/ContractDetailsPage';
 import EmployeesPage from './pages/employees/EmployeesPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -18,7 +19,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate checking auth status
     const checkAuthStatus = () => {
       checkAuth();
       setIsLoading(false);
@@ -47,6 +47,7 @@ function App() {
             <Route path="processes" element={<ProcessesPage />} />
             <Route path="processes/:id" element={<ProcessDetailsPage />} />
             <Route path="contracts" element={<ContractsPage />} />
+            <Route path="contracts/:id" element={<ContractDetailsPage />} />
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
