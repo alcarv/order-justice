@@ -12,6 +12,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { CompaniesModule } from './companies/companies.module';
 import { DocumentTypesModule } from './document-types/document-types.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { CalendarModule } from './calendar/calendar.module';
 import { SessionGuard } from './auth/guards/session.guard';
 
 @Module({
@@ -43,6 +44,7 @@ import { SessionGuard } from './auth/guards/session.guard';
     CompaniesModule,
     DocumentTypesModule,
     ContractsModule,
+    CalendarModule,
   ],
   providers: [
     {

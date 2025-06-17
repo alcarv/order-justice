@@ -21,8 +21,8 @@ export interface Client {
   updatedAt: string;
   notes?: string;
   avatar?: string;
-  processes: string[];
-  contracts: string[];
+  processes: string[]; // Array of process IDs
+  contracts: string[]; // Array of contract IDs
 }
 
 export type ProcessStatus = 
@@ -235,6 +235,61 @@ export interface ContractDocument {
   updatedAt: string;
 }
 
+export type CalendarEventType = 
+  | 'deadline'
+  | 'meeting'
+  | 'court_hearing'
+  | 'reminder'
+  | 'appointment'
+  | 'other';
+
+export type CalendarEventPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  type: CalendarEventType;
+  priority: CalendarEventPriority;
+  startTime: string;
+  endTime: string;
+  allDay: boolean;
+  location?: string;
+  processId?: string;
+  contractId?: string;
+  clientId?: string;
+  createdBy: User;
+  attendees?: string[];
+  reminders?: CalendarReminder[];
+  recurrence?: CalendarRecurrence;
+  color?: string;
+  isCompleted: boolean;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  client?: Client;
+  process?: Process;
+  contract?: Contract;
+}
+
+export interface CalendarReminder {
+  id: string;
+  eventId: string;
+  type: 'email' | 'notification' | 'sms';
+  minutesBefore: number;
+  isActive: boolean;
+  sentAt?: string;
+}
+
+export interface CalendarRecurrence {
+  type: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval: number;
+  endDate?: string;
+  count?: number;
+  daysOfWeek?: number[];
+  dayOfMonth?: number;
+}
+
 export interface AppNotification {
   id: string;
   title: string;
@@ -243,16 +298,4 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
   link?: string;
-}
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  location?: string;
-  processId?: string;
-  clientId?: string;
-  createdBy: string;
 }

@@ -16,12 +16,22 @@ export class UsersService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
     private sessionService: SessionService,
-  ) {}
+  ) { }
 
   async findAll(companyId: string) {
     return this.usersRepository.find({
       where: { company: { id: companyId } },
       select: ['id', 'name', 'email', 'role', 'avatar', 'isActive', 'lastLogin', 'createdAt', 'updatedAt'],
+      order: { name: 'ASC' },
+      relations: ['currentSession'],
+    });
+  }
+
+
+  async getUsersCompany(companyId: string) {
+    return this.usersRepository.find({
+      where: { company: { id: companyId } },
+      select: ['id', 'name', 'email', 'avatar'],
       order: { name: 'ASC' },
       relations: ['currentSession'],
     });
@@ -42,7 +52,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return this.usersRepository.findOne({ 
+    return this.usersRepository.findOne({
       where: { email },
       relations: ['company'],
     });
@@ -82,7 +92,7 @@ export class UsersService {
       company: { id: companyId },
       isActive: true,
     });
-    
+
     const savedUser = await this.usersRepository.save(user);
     const { password, ...result } = savedUser;
     return result;
@@ -90,12 +100,12 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto, companyId: string, requesterId: string) {
     const user = await this.findOne(id, companyId);
-    
+
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.usersRepository.findOne({
         where: { email: updateUserDto.email },
       });
-      
+
       if (existingUser) {
         throw new ConflictException('User with this email already exists');
       }
@@ -104,7 +114,7 @@ export class UsersService {
     if (id === requesterId && updateUserDto.role) {
       throw new ForbiddenException('You cannot change your own role');
     }
-    
+
     Object.assign(user, updateUserDto);
     const savedUser = await this.usersRepository.save(user);
     const { password, ...result } = savedUser;
@@ -113,7 +123,7 @@ export class UsersService {
 
   async remove(id: string, companyId: string, requesterId: string) {
     const user = await this.findOne(id, companyId);
-    
+
     if (id === requesterId) {
       throw new ForbiddenException('You cannot delete your own account');
     }
@@ -128,7 +138,7 @@ export class UsersService {
 
   async toggleStatus(id: string, companyId: string, requesterId: string) {
     const user = await this.findOne(id, companyId);
-    
+
     if (id === requesterId) {
       throw new ForbiddenException('You cannot deactivate your own account');
     }
@@ -140,7 +150,7 @@ export class UsersService {
     }
 
     await this.usersRepository.update(id, { isActive: newStatus });
-    
+
     const updatedUser = await this.findOne(id, companyId);
     return {
       ...updatedUser,
@@ -158,8 +168,8 @@ export class UsersService {
     });
 
     const loggedInUsers = await this.usersRepository.count({
-      where: { 
-        company: { id: companyId }, 
+      where: {
+        company: { id: companyId },
         isActive: true,
         currentSession: { isActive: true }
       },

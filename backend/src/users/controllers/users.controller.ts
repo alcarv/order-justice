@@ -24,6 +24,14 @@ export class UsersController {
     return this.usersService.findAll(companyId);
   }
 
+  @Get('company')
+  @ApiOperation({ summary: 'Get all users for you company' })
+  @ApiResponse({ status: 200, description: 'Return all users for Company' })
+  getUsersCompany(@CompanyId() companyId?: string) {
+    return this.usersService.getUsersCompany(companyId);
+  }
+
+
   @Get(':id')
   @ApiOperation({ summary: 'Get user by id' })
   @ApiResponse({ status: 200, description: 'Return user by id' })
